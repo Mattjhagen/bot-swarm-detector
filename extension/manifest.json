@@ -10,7 +10,7 @@
   },
   "permissions": [],
   "host_permissions": [
-    "https://bot-swarm-detector-extension.onrender.com/*"
+    "https://bot-swarm-detector-extension.onrender.com/"
   ],
   "background": {
     "service_worker": "background.js"
