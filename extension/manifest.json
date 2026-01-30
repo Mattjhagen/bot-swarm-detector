@@ -1,12 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Bot Swarm Detector",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Analyzes social media threads for coordinated bot networks.",
   "permissions": [
     "activeTab",
     "scripting"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["*://*.reddit.com/*"],
