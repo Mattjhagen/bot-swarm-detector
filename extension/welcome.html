@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Bot Swarm Detector</title>
+    <style>
+        body {
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0; /* Slate 200 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #1e293b; /* Slate 800 */
+            padding: 48px;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 480px;
+            border: 1px solid #334155;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .icon-wrapper {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px auto;
+            font-size: 40px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        h1 {
+            color: #60a5fa;
+            margin: 0 0 12px 0;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #94a3b8;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        .btn-kofi {
+            background: #FF5E5B; /* Ko-fi Brand Color */
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(255, 94, 91, 0.3);
+            border: 2px solid transparent;
+        }
+
+        .btn-kofi:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 94, 91, 0.5);
+            background: #ff4845;
+        }
+
+        .btn-secondary {
+            display: block;
+            margin-top: 24px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            color: #94a3b8;
+        }
+
+        .heart {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon-wrapper">
+            🛡️
+        </div>
+        <h1>Installation Successful!</h1>
+        <p class="subtitle">
+            <span class="highlight">Bot Swarm Detector</span> is now active and protecting your feed from coordinated manipulation.
+        </p>
+        
+        <p class="subtitle" style="font-size: 15px;">
+            We are a free, open-source project. If this tool helps you stay informed, please consider supporting our development.
+        </p>
+
+        <a href="https://ko-fi.com/velourpay" target="_blank" class="btn-kofi">
+            <span class="heart">☕</span> Support on Ko-fi
+        </a>
+
+        <a href="#" id="close-btn" class="btn-secondary">Continue to Browser</a>
+    </div>
+
+    <!-- External Script required for Manifest V3 CSP Compliance -->
+    <script src="welcome.js"></script>
+</body>
+</html>
