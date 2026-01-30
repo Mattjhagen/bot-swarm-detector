@@ -5,3 +5,5 @@ chromadb
 scikit-learn
 numpy
 pydantic
+requests
+pysqlite3
