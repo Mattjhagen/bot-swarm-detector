@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Bot Swarm Detector",
+  "version": "1.0",
+  "description": "Analyzes social media threads for coordinated bot networks.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.reddit.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*"
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Bot Swarm Detector",
+  "description": "A full-stack system using FastAPI, ChromaDB, and a Chrome Extension to detect coordinated bot activity on social media using metadata, linguistic analysis, and vector similarity.",
+  "requestFramePermissions": []
+}
