@@ -18,6 +18,12 @@
     }
   ],
   "host_permissions": [
-    "http://localhost:8000/*"
-  ]
+    "http://localhost:8000/*",
+    "https://bot-swarm-detector-extension.onrender.com/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }
