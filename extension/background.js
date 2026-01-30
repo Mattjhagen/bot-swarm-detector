@@ -5,7 +5,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'ANALYZE_COMMENTS') {
     console.log("Background: Received comments to analyze", message.payload.length);
     
-    fetch('https://bot-swarm-detector-extension.onrender.com', {
+    // FIX: Added "/analyze" to the URL
+    fetch('https://bot-swarm-detector-extension.onrender.com/analyze', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -13,7 +14,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       body: JSON.stringify({ comments: message.payload })
     })
     .then(response => {
-      if (!response.ok) throw new Error('Server error');
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
       return response.json();
     })
     .then(data => {

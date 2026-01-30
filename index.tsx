@@ -66,7 +66,8 @@ const App = () => {
     setResults([]);
 
     try {
-      const response = await fetch('https://bot-swarm-detector-extension.onrender.com', {
+      // FIX: Added /analyze to the endpoint
+      const response = await fetch('https://bot-swarm-detector-extension.onrender.com/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -80,7 +81,7 @@ const App = () => {
       setResults(data);
     } catch (error) {
       console.error(error);
-      alert("Error connecting to localhost:8000. Is the python server running?");
+      alert("Error connecting to server. Check console for details.");
     } finally {
       setLoading(false);
     }
@@ -104,7 +105,7 @@ const App = () => {
             </p>
           </div>
           <div className="text-right text-sm text-slate-500">
-            API Status: <span className="text-green-400">Targeting localhost:8000</span>
+            API Status: <span className="text-green-400">Targeting Production (Render)</span>
           </div>
         </header>
 
