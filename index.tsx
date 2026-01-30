@@ -66,7 +66,7 @@ const App = () => {
     setResults([]);
 
     try {
-      const response = await fetch('http://localhost:8000/analyze', {
+      const response = await fetch('https://bot-swarm-detector-extension.onrender.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

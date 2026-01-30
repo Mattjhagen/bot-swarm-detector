@@ -5,7 +5,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'ANALYZE_COMMENTS') {
     console.log("Background: Received comments to analyze", message.payload.length);
     
-    fetch('http://localhost:8000/analyze', {
+    fetch('https://bot-swarm-detector-extension.onrender.com', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
