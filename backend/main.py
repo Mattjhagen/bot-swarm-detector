@@ -21,23 +21,23 @@ from chromadb.config import Settings
 
 # --- CONFIGURATION ---
 MODEL_NAME = 'all-MiniLM-L6-v2'
-# Lowered thresholds for MVP demonstration purposes
 SIMILARITY_THRESHOLD = 0.70 
-SWARM_COUNT_THRESHOLD = 2 # Flags if it finds 2 other similar comments (Cluster of 3)
+SWARM_COUNT_THRESHOLD = 2 
 
 # --- DATA MODELS ---
 class CommentInput(BaseModel):
     id: str
     author: str
     text: str
-    account_age_days: int = 0  # Default 0 if scraping fails
-    post_volume: int = 0       # Karma or total posts
+    account_age_days: int = 0
+    post_volume: int = 0
 
 class ScoreResult(BaseModel):
     comment_id: str
     bot_score: int
     breakdown: dict
-    risk_level: str  # LOW, MEDIUM, HIGH
+    risk_level: str
+    flags: List[str]  # New field for tooltip explanations
 
 class AnalysisRequest(BaseModel):
     comments: List[CommentInput]
@@ -45,7 +45,6 @@ class AnalysisRequest(BaseModel):
 # --- VECTOR DATABASE WRAPPER ---
 class VectorStore:
     def __init__(self):
-        # Using ephemeral client (in-memory) for this MVP
         self.client = chromadb.Client(Settings(is_persistent=False))
         self.collection = self.client.create_collection(name="session_comments")
 
@@ -73,108 +72,126 @@ class BotDetector:
         print(f"Loading ML Model {MODEL_NAME}...")
         self.model = SentenceTransformer(MODEL_NAME)
         self.vector_store = VectorStore()
-        # Regex for Layer 2: Linguistic Fingerprinting (AI Hedging/Common ChatGPT-isms)
+        
+        # Layer 2: AI Hedging
         self.ai_patterns = [
-            r"it is important to note",
-            r"complex tapestry",
-            r"delve into",
-            r"nuanced approach",
-            r"as an AI language model",
-            r"multi-faceted",
-            r"foster a sense of",
-            r"testament to the"
+            r"it is important to note", r"complex tapestry", r"delve into",
+            r"nuanced approach", r"as an AI language model", r"multi-faceted"
+        ]
+        
+        # Layer 4: Misinfo/Conspiracy Rhetoric
+        self.misinfo_patterns = [
+            r"wake up", r"do your own research", r"mainstream media", 
+            r"sheep", r"globalist", r"cabal", r"hoax", r"truth they hide",
+            r"follow the money", r"crisis actor", r"agenda", r"bioweapon"
         ]
 
-    def _layer_1_metadata(self, age: int, volume: int) -> int:
-        """
-        Layer 1: Metadata Check (Weight: 20%)
-        New accounts with high activity are suspicious.
-        """
+    def _layer_1_metadata(self, age: int, volume: int) -> (int, List[str]):
         score = 0
+        reasons = []
         if age < 90 and volume > 1000:
             score = 20
-        return score
+            reasons.append("Suspicious Metadata (New Account + High Volume)")
+        elif volume > 50000 and age < 365:
+             score = 10
+             reasons.append("Abnormally High Post Volume")
+        return score, reasons
 
-    def _layer_2_linguistics(self, text: str) -> int:
-        """
-        Layer 2: Linguistic Fingerprinting (Weight: 40%)
-        Checks for AI hedging and specific phraseology.
-        """
+    def _layer_2_linguistics(self, text: str) -> (int, List[str]):
         score = 0
+        reasons = []
         text_lower = text.lower()
         
         matches = sum(1 for pattern in self.ai_patterns if re.search(pattern, text_lower))
         if matches > 0:
             score += 20
+            reasons.append(f"AI Linguistics Detected ({matches} patterns)")
         
         if len(text.split()) > 15 and text[0].isupper() and text.endswith('.'):
-             score += 20
+             if score == 0: # Only add if strict grammar is the only trait
+                 score += 5
+                 reasons.append("Unusually Formal Grammar")
              
-        return min(score, 40)
+        return min(score, 40), reasons
 
-    def _layer_3_coordination(self, current_vector, all_vectors) -> int:
-        """
-        Layer 3: Network Coordination (Weight: 40%)
-        Calculates Cosine Similarity against the current batch/thread.
-        """
+    def _layer_3_coordination(self, current_vector, all_vectors) -> (int, List[str]):
         score = 0
+        reasons = []
         sim_count = 0
         norm_current = np.linalg.norm(current_vector)
         
         for other_vec in all_vectors:
-            if np.array_equal(current_vector, other_vec):
-                continue
-                
+            if np.array_equal(current_vector, other_vec): continue
             norm_other = np.linalg.norm(other_vec)
-            if norm_current == 0 or norm_other == 0:
-                continue
-                
-            cosine_sim = np.dot(current_vector, other_vec) / (norm_current * norm_other)
+            if norm_current == 0 or norm_other == 0: continue
             
+            cosine_sim = np.dot(current_vector, other_vec) / (norm_current * norm_other)
             if cosine_sim > SIMILARITY_THRESHOLD:
                 sim_count += 1
         
         if sim_count >= SWARM_COUNT_THRESHOLD:
-            score = 40
+            score = 30
+            reasons.append(f"Swarm Detected ({sim_count} similar comments)")
             
-        return score
+        return score, reasons
+
+    def _layer_4_misinfo_patterns(self, text: str) -> (int, List[str]):
+        """
+        Layer 4: Rhetorical Pattern Matching for Misinformation
+        Checks for emotionally manipulative language common in fake news propagation.
+        """
+        score = 0
+        reasons = []
+        text_lower = text.lower()
+        
+        matches = [p for p in self.misinfo_patterns if re.search(p, text_lower)]
+        if matches:
+            score = 25
+            reasons.append(f"Misinfo Rhetoric: '{', '.join(matches[:2])}...'")
+            
+        return score, reasons
 
     def analyze_batch(self, comments: List[CommentInput]) -> List[ScoreResult]:
         results = []
         texts = [c.text for c in comments]
-        if not texts:
-            return []
+        if not texts: return []
             
         embeddings = self.model.encode(texts)
         
+        # Reset DB for this session
         self.vector_store.reset()
         ids = [c.id for c in comments]
         metadatas = [{"author": c.author} for c in comments]
-        embeddings_list = embeddings.tolist()
-        self.vector_store.add_comments(ids, texts, embeddings_list, metadatas)
+        self.vector_store.add_comments(ids, texts, embeddings.tolist(), metadatas)
 
         for i, comment in enumerate(comments):
-            l1_score = self._layer_1_metadata(comment.account_age_days, comment.post_volume)
-            l2_score = self._layer_2_linguistics(comment.text)
-            l3_score = self._layer_3_coordination(embeddings[i], embeddings)
+            all_flags = []
             
-            total_score = l1_score + l2_score + l3_score
+            l1, r1 = self._layer_1_metadata(comment.account_age_days, comment.post_volume)
+            l2, r2 = self._layer_2_linguistics(comment.text)
+            l3, r3 = self._layer_3_coordination(embeddings[i], embeddings)
+            l4, r4 = self._layer_4_misinfo_patterns(comment.text)
+            
+            all_flags.extend(r1 + r2 + r3 + r4)
+            
+            # Max score 100
+            total_score = min(l1 + l2 + l3 + l4, 100)
             
             risk = "LOW"
-            if total_score >= 70:
-                risk = "HIGH"
-            elif total_score >= 40:
-                risk = "MEDIUM"
+            if total_score >= 65: risk = "HIGH"
+            elif total_score >= 35: risk = "MEDIUM"
                 
             results.append(ScoreResult(
                 comment_id=comment.id,
                 bot_score=total_score,
                 risk_level=risk,
                 breakdown={
-                    "metadata_risk": l1_score,
-                    "linguistic_risk": l2_score,
-                    "swarm_risk": l3_score
-                }
+                    "metadata_risk": l1,
+                    "linguistic_risk": l2,
+                    "swarm_risk": l3,
+                    "misinfo_risk": l4
+                },
+                flags=all_flags
             ))
             
         return results
@@ -190,7 +207,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize model at startup
 detector = BotDetector()
 
 @app.post("/analyze", response_model=List[ScoreResult])
@@ -207,6 +223,5 @@ def health_check():
     return {"status": "active", "model": MODEL_NAME}
 
 if __name__ == "__main__":
-    # Use PORT environment variable if available (Render/Heroku), otherwise 8000
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

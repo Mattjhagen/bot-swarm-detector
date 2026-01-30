@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Bot Swarm Detector",
-  "version": "1.2",
-  "description": "Analyzes Reddit threads for coordinated bot networks using AI linguistic patterns and metadata analysis.",
+  "version": "1.3",
+  "description": "Analyzes threads on Reddit, Facebook, and X for coordinated bot networks and misinformation patterns.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -17,7 +17,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.reddit.com/*"],
+      "matches": [
+        "*://*.reddit.com/*",
+        "*://*.facebook.com/*",
+        "*://*.twitter.com/*",
+        "*://*.x.com/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
