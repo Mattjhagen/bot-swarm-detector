@@ -1,5 +1,5 @@
 // content.js - Bot Swarm Detector
-// Supports: Reddit, Facebook, X (Twitter)
+// Supports: Reddit, Facebook, X (Twitter), YouTube
 
 console.log("Bot Swarm Detector: Loaded for " + window.location.hostname);
 
@@ -46,6 +46,35 @@ function getPlatformConfig() {
             textSelector: (el) => el.innerText || el.textContent,
             insertBadge: (el, badge) => {
                 el.prepend(badge);
+            }
+        };
+    } else if (host.includes('youtube')) {
+        return {
+            type: 'youtube',
+            // Selects individual comment renderers (both top-level and replies)
+            commentSelector: 'ytd-comment-renderer, ytd-comment-view-model',
+            textSelector: (el) => {
+                // Try standard ID first, then fallback for newer view models
+                const content = el.querySelector('#content-text') || el.querySelector('.yt-core-attributed-string');
+                return content ? (content.innerText || content.textContent) : "";
+            },
+            insertBadge: (el, badge) => {
+                // Find the header area where author name and time are located
+                const header = el.querySelector('#header-author') || el.querySelector('.ytd-comment-view-model-wiz__header');
+                
+                if (header) {
+                    // Try to insert after the author name/time
+                    const timeEl = header.querySelector('#published-time-text') || header.querySelector('.ytd-comment-view-model-wiz__timestamp');
+                    if (timeEl) {
+                        timeEl.parentNode.insertBefore(badge, timeEl.nextSibling);
+                    } else {
+                        header.appendChild(badge);
+                    }
+                    // Adjust badge style for YouTube's tight spacing
+                    badge.style.marginLeft = "8px";
+                    badge.style.marginTop = "0px";
+                    badge.style.verticalAlign = "middle";
+                }
             }
         };
     }
@@ -268,10 +297,11 @@ function applyResults(results, elementMap, config) {
         // Color Logic
         if (res.risk_level === 'HIGH') {
             style(badge, { backgroundColor: '#dc2626', color: 'white', border: '1px solid #7f1d1d' });
-            el.style.borderLeft = "4px solid #dc2626";
+            // Only add side border if it's not YouTube (too messy there)
+            if(config.type !== 'youtube') el.style.borderLeft = "4px solid #dc2626";
         } else if (res.risk_level === 'MEDIUM') {
             style(badge, { backgroundColor: '#f59e0b', color: 'black', border: '1px solid #b45309' });
-            el.style.borderLeft = "4px solid #f59e0b";
+            if(config.type !== 'youtube') el.style.borderLeft = "4px solid #f59e0b";
         } else {
             style(badge, { backgroundColor: '#22c55e', color: 'white', border: '1px solid #14532d', opacity: "0.8" });
         }
