@@ -20,8 +20,9 @@ from chromadb.config import Settings
 
 # --- CONFIGURATION ---
 MODEL_NAME = 'all-MiniLM-L6-v2'
-SIMILARITY_THRESHOLD = 0.85
-SWARM_COUNT_THRESHOLD = 3 # If > 3 comments are similar, flag as swarm
+# Lowered thresholds for MVP demonstration purposes
+SIMILARITY_THRESHOLD = 0.70 
+SWARM_COUNT_THRESHOLD = 2 # Flags if it finds 2 other similar comments (Cluster of 3)
 
 # --- DATA MODELS ---
 class CommentInput(BaseModel):
@@ -143,6 +144,7 @@ class BotDetector:
             cosine_sim = np.dot(current_vector, other_vec) / (norm_current * norm_other)
             
             if cosine_sim > SIMILARITY_THRESHOLD:
+                print(f"   -> Match Found! Similarity: {cosine_sim:.2f}")
                 sim_count += 1
         
         # Threshold Logic
@@ -172,6 +174,7 @@ class BotDetector:
 
         # 3. Iterate and Score
         for i, comment in enumerate(comments):
+            print(f"Analyzing {comment.id[:8]}...")
             # Layer 1
             l1_score = self._layer_1_metadata(comment.account_age_days, comment.post_volume)
             
