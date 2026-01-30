@@ -10,6 +10,8 @@
   },
   "permissions": [],
   "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
     "https://bot-swarm-detector-extension.onrender.com/*"
   ],
   "background": {

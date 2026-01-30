@@ -1,12 +1,15 @@
 // background.js
 console.log("Bot Swarm Detector: Background Service Worker Loaded");
 
+// API CONFIGURATION
+// Change this to your Render URL if deploying: 'https://bot-swarm-detector-extension.onrender.com/analyze'
+const API_URL = 'http://127.0.0.1:8000/analyze'; 
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'ANALYZE_COMMENTS') {
-    console.log("Background: Received comments to analyze", message.payload.length);
+    console.log(`Background: Analyzing ${message.payload.length} comments via ${API_URL}`);
     
-    // FIX: Added "/analyze" to the URL
-    fetch('https://bot-swarm-detector-extension.onrender.com/analyze', {
+    fetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
