@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+pysqlite3-binary
 sentence-transformers
 chromadb
 scikit-learn
